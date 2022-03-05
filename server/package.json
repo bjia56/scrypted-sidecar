@@ -1,0 +1,28 @@
+{
+  "name": "scrypted-extras-server",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "ts-node src/index.ts",
+    "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/express": "^4.17.13",
+    "nodemon": "^2.0.15",
+    "ts-node": "^10.6.0",
+    "typescript": "^4.6.2"
+  },
+  "dependencies": {
+    "@koush/wrtc": "^0.5.2",
+    "@scrypted/client": "file:scrypted/packages/client",
+    "@scrypted/common": "file:scrypted/common",
+    "@scrypted/sdk": "file:scrypted/sdk",
+    "@scrypted/server": "file:scrypted/server",
+    "@scrypted/types": "file:scrypted/sdk/types",
+    "express": "^4.17.3",
+    "socket.io": "^4.4.1"
+  }
+}
