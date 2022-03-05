@@ -1,6 +1,6 @@
 [submodule "server/scrypted"]
 	path = server/scrypted
 	url = https://github.com/koush/scrypted.git
-[submodule "web/scrypted"]
+[submodule "nextjs/scrypted"]
 	path = web/scrypted
 	url = https://github.com/koush/scrypted.git

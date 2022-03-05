@@ -4,7 +4,7 @@ import { BrowserSignalingSession } from "../scrypted/common/src/rtc-signaling";
 import { RpcPeer } from '../scrypted/server/src/rpc';
 import { io } from "socket.io-client";
 
-async function streamCamera(getVideo: () => HTMLVideoElement) {
+export default async function streamCamera(getVideo: () => HTMLVideoElement) {
   const socket = io();
 
   const rpcPeer = new RpcPeer('cast-receiver', 'scrypted-server', (message, reject) => {
@@ -38,7 +38,3 @@ async function streamCamera(getVideo: () => HTMLVideoElement) {
 
   return pc;
 }
-
-document.getElementById("start-button").onclick = () => {
-  streamCamera(() => <HTMLVideoElement>document.getElementById("remote-video"));
-};

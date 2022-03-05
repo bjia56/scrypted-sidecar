@@ -1,8 +1,7 @@
 {
   "name": "scrypted-sidecar-server",
   "version": "0.0.1",
-  "description": "",
-  "main": "index.js",
+  "private": true,
   "scripts": {
     "start": "ts-node src/index.ts",
     "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts"
