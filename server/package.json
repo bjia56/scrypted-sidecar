@@ -1,5 +1,5 @@
 {
-  "name": "scrypted-extras-server",
+  "name": "scrypted-sidecar-server",
   "version": "0.0.1",
   "description": "",
   "main": "index.js",
