@@ -4,6 +4,16 @@ import { BrowserSignalingSession } from "../scrypted/common/src/rtc-signaling";
 import { RpcPeer } from '../scrypted/server/src/rpc';
 import { io } from "socket.io-client";
 
+const configuration: RTCConfiguration = {
+  iceServers: [
+    {
+      urls: ["turn:turn0.clockworkmod.com", "turn:n0.clockworkmod.com", "turn:n1.clockworkmod.com"],
+      username: "foo",
+      credential: "bar",
+    },
+  ],
+};
+
 export default async function streamCamera(getVideo: () => HTMLVideoElement) {
   const socket = io();
 
@@ -19,7 +29,7 @@ export default async function streamCamera(getVideo: () => HTMLVideoElement) {
     rpcPeer.handleMessage(JSON.parse(data.toString()));
   });
 
-  const pc = new RTCPeerConnection();
+  const pc = new RTCPeerConnection(configuration);
 
   const session = new BrowserSignalingSession(pc, () => socket.close());
   rpcPeer.params['session'] = session;
