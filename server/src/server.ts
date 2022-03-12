@@ -1,16 +1,17 @@
-import express, { Application } from "express";
+import express, { Application, Request, Response, NextFunction } from "express";
 import session from "express-session";
 import bodyParser from "body-parser";
 import { Server as SocketIOServer } from "socket.io";
 import { createServer, Server as HTTPServer } from "http";
 import * as path from "path";
 import crypto from "crypto";
+import sharp from "sharp";
 
 import { connectScryptedClient, ScryptedClientStatic } from '../scrypted/packages/client/src';
-import { VideoCamera, Camera } from "../scrypted/sdk/types/index";
+import { ScryptedInterface, ScryptedDevice, VideoCamera, Camera } from "../scrypted/sdk/types/index";
 import { startBrowserRTCSignaling } from "./ffmpeg-to-wrtc";
 
-async function getSDK() {
+async function getSDK(): Promise<ScryptedClientStatic> {
   const sdk = await connectScryptedClient({
     baseUrl: 'https://localhost:10443',
     pluginId: "@scrypted/core",
@@ -20,19 +21,19 @@ async function getSDK() {
   return sdk
 }
 
-function getUsername() {
+function getUsername(): string {
   return process.env.SERVER_USERNAME || 'user';
 }
 
-function getPassword() {
+function getPassword(): string {
   return process.env.SERVER_PASSWORD || 'pass';
 }
 
-function getCookieSecret() {
+function getCookieSecret(): string {
   return process.env.COOKIE_SECRET || crypto.randomBytes(20).toString('hex');
 }
 
-function auth(req, res, next) {
+function auth(req: Request, res: Response, next: NextFunction): void {
   if (loggedIn(req)) {
     return next();
   } else {
@@ -40,8 +41,8 @@ function auth(req, res, next) {
   }
 }
 
-function loggedIn(req) {
-  return req.session && req.session.user == getUsername();
+function loggedIn(req: Request): boolean {
+  return req.session && req.session['user'] == getUsername();
 }
 
 export class Server {
@@ -59,7 +60,7 @@ export class Server {
     this.handleSocketConnection();
   }
 
-  private async initialize() {
+  private async initialize(): Promise<void> {
     this.app = express();
     this.app.use(session({
       secret: getCookieSecret(),
@@ -88,19 +89,37 @@ export class Server {
   private configureApp(): void {
     const staticWeb = path.join(__dirname, "..", "..", "web", "out");
 
+    this.configureLogin(staticWeb);
+    this.app.use(auth);
+    this.configureApiCameras();
+
+    this.app.get('/api/snapshot', auth, async (req, res) => {
+      const camera = await this.sdk.systemManager.getDeviceByName<Camera>("Camera 1");
+      const picture = await camera.takePicture()
+      const buf = await this.sdk.mediaManager.convertMediaObjectToBuffer(picture, 'image/*');
+      console.log("Got snapshot");
+      res.send("data:image/png;base64," + buf.toString('base64'));
+    })
+    this.app.use(auth, express.static(staticWeb));
+  }
+
+  private configureLogin(staticWeb: string): void {
     this.app.use(bodyParser.json());
     this.app.use(bodyParser.urlencoded({ extended: true }));
-    this.app.get('/login', (req, res) => {
+
+    this.app.get('/login', (req: Request, res: Response) => {
       if (loggedIn(req)) {
         res.redirect('/');
       } else {
         res.sendFile(path.join(staticWeb, "login.html"))
       }
     });
-    this.app.get('/logout', (req, res) => {
+
+    this.app.get('/logout', (req: Request, res: Response) => {
       req.session.destroy((_) => res.redirect('/login'));
     });
-    this.app.post('/login', (req, res) => {
+
+    this.app.post('/login', (req: Request, res: Response) => {
       if (!req.body['username'] || !req.body['password']) {
         res.redirect('/login');
       } else if (req.body['username'] == getUsername() && req.body['password'] == getPassword()) {
@@ -110,13 +129,35 @@ export class Server {
         res.redirect('/login');
       }
     });
-    this.app.get('/api/snapshot', auth, async (req, res) => {
-      const camera = await this.sdk.systemManager.getDeviceByName<Camera>("Camera 1");
-      const picture = await camera.takePicture()
-      const buf = await this.sdk.mediaManager.convertMediaObjectToBuffer(picture, 'image/*');
-      console.log("Got snapshot");
-      res.send("data:image/png;base64," + buf.toString('base64'));
+  }
+
+  private configureApiCameras(): void {
+    this.app.get('/api/cameras', async (_: Request, res: Response) => {
+      const sysState = this.sdk.systemManager.getSystemState()
+      const deviceIds = Object.keys(sysState);
+
+      const cameras = deviceIds.map((deviceId: string) => {
+        const device = this.sdk.systemManager.getDeviceById(deviceId);
+        if (device.interfaces.includes(ScryptedInterface.Camera)) {
+          return <ScryptedDevice & Camera>device;
+        }
+      }).filter((i) => !!i);
+
+      const result = await Promise.all(
+        cameras.map(async (camera: ScryptedDevice & Camera) => {
+          const picture = await camera.takePicture();
+          const buf = await this.sdk.mediaManager.convertMediaObjectToBuffer(picture, 'image/*');
+          const resized = await sharp(buf).resize({ width: 640 }).toBuffer();
+
+          return {
+            img: "data:image/png;base64," + resized.toString('base64'),
+            name: camera.name,
+            room: camera.room
+          };
+        })
+      );
+
+      res.send(JSON.stringify(result));
     })
-    this.app.use(auth, express.static(staticWeb));
   }
 }

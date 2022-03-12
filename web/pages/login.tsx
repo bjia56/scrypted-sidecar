@@ -1,8 +1,7 @@
 import * as React from 'react';
 import { Container, FormControl, Button, Input } from '@mui/material';
 
-export default function Login() {
-
+export default function Login(): React.ReactElement {
   return (
     <Container maxWidth="sm">
       <form method="post">
