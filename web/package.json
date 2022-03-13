@@ -3,9 +3,9 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "NODE_ENV=development node server.js",
     "build": "next build && next export",
-    "start": "next start",
+    "start": "NODE_ENV=production node server.js",
     "lint": "next lint"
   },
   "dependencies": {
@@ -20,6 +20,7 @@
     "@scrypted/sdk": "file:scrypted/sdk",
     "@scrypted/server": "file:scrypted/server",
     "@scrypted/types": "file:scrypted/sdk/types",
+    "http-proxy-middleware": "^2.0.3",
     "next": "^12.1.0",
     "prop-types": "^15.8.1",
     "react": "^17.0.2",

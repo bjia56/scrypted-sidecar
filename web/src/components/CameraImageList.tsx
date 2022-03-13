@@ -4,16 +4,14 @@ import ImageListItem from '@mui/material/ImageListItem';
 import ImageListItemBar from '@mui/material/ImageListItemBar';
 import ListSubheader from '@mui/material/ListSubheader';
 import axios from 'axios';
+import { callAPI } from '../util/API';
 
 export default function CameraImageList(): React.ReactElement {
   const [itemData, setItemData] = React.useState([]);
-  const [loadOnce, setLoadOnce] = React.useState(false);
 
   React.useEffect(() => {
-    if (loadOnce) return;
-    setLoadOnce(true);
-    axios.get('/api/cameras').then((resp) => setItemData(resp.data));
-  });
+    callAPI(axios.get, '/api/cameras').then((res) => setItemData(res.data || []));
+  }, []);
 
   return (
     <ImageList sx={{ width: 500, height: 450 }}>

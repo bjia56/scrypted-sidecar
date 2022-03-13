@@ -42,7 +42,9 @@ function auth(req: Request, res: Response, next: NextFunction): void {
 }
 
 function loggedIn(req: Request): boolean {
-  return req.session && req.session['user'] == getUsername();
+  const res = req.session && req.session['user'] == getUsername();
+  console.log(res);
+  return res;
 }
 
 export class Server {
@@ -89,9 +91,8 @@ export class Server {
   private configureApp(): void {
     const staticWeb = path.join(__dirname, "..", "..", "web", "out");
 
-    this.configureLogin(staticWeb);
-    this.app.use(auth);
-    this.configureApiCameras();
+    this.configureAPILogin(staticWeb);
+    this.configureAPICameras();
 
     this.app.get('/api/snapshot', auth, async (req, res) => {
       const camera = await this.sdk.systemManager.getDeviceByName<Camera>("Camera 1");
@@ -103,23 +104,19 @@ export class Server {
     this.app.use(auth, express.static(staticWeb));
   }
 
-  private configureLogin(staticWeb: string): void {
+  private configureAPILogin(staticWeb: string): void {
     this.app.use(bodyParser.json());
     this.app.use(bodyParser.urlencoded({ extended: true }));
 
-    this.app.get('/login', (req: Request, res: Response) => {
-      if (loggedIn(req)) {
-        res.redirect('/');
-      } else {
-        res.sendFile(path.join(staticWeb, "login.html"))
-      }
-    });
+    this.app.get('/api/loggedin', (req: Request, res: Response) => {
+      res.send("" + loggedIn(req));
+    })
 
-    this.app.get('/logout', (req: Request, res: Response) => {
+    this.app.get('/api/logout', (req: Request, res: Response) => {
       req.session.destroy((_) => res.redirect('/login'));
     });
 
-    this.app.post('/login', (req: Request, res: Response) => {
+    this.app.post('/api/login', (req: Request, res: Response) => {
       if (!req.body['username'] || !req.body['password']) {
         res.redirect('/login');
       } else if (req.body['username'] == getUsername() && req.body['password'] == getPassword()) {
@@ -131,8 +128,8 @@ export class Server {
     });
   }
 
-  private configureApiCameras(): void {
-    this.app.get('/api/cameras', async (_: Request, res: Response) => {
+  private configureAPICameras(): void {
+    this.app.get('/api/cameras', auth, async (_: Request, res: Response) => {
       const sysState = this.sdk.systemManager.getSystemState()
       const deviceIds = Object.keys(sysState);
 
