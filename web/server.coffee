@@ -13,6 +13,11 @@ apiPaths =
 		pathRewrite: 
 			'^/api': '/api'
 		changeOrigin: true
+	'/socket.io': 
+		target: process.env.BACKEND_URL || 'http://localhost:5000'
+		pathRewrite: 
+			'^/socket\\.io': '/socket.io'
+		changeOrigin: true
 	'/logout': 
 		target: process.env.BACKEND_URL || 'http://localhost:5000'
 		pathRewrite: 
@@ -24,6 +29,7 @@ apiPaths =
 app.prepare().then () -> 
 	server = express()
 	server.use '/api', (createProxyMiddleware apiPaths['/api'])
+	server.use '/socket.io', (createProxyMiddleware apiPaths['/socket.io'])
 	server.use '/logout', (createProxyMiddleware apiPaths['/logout']) 
 
 	server.all '*', (req, res) -> 

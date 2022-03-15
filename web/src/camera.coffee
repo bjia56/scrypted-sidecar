@@ -13,12 +13,12 @@ configuration =
 		}
 	]
 
-export default async streamCamera(getVideo) ->
+export streamCamera = (getVideo) ->
 	socket = io()
 
 	rpcPeer = new RpcPeer 'cast-receiver', 'scrypted-server', (message, reject) ->
 		try
-			socket.emit "client-signaling", JSON.stringify mess	age
+			socket.emit "client-signaling", JSON.stringify message
 		catch e
 			reject e
 
