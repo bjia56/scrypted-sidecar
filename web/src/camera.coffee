@@ -13,7 +13,7 @@ configuration =
 		}
 	]
 
-export streamCamera = (getVideo) ->
+export streamCamera = (getVideo, getAudio) ->
 	socket = io()
 
 	rpcPeer = new RpcPeer 'cast-receiver', 'scrypted-server', (message, reject) ->
@@ -34,8 +34,7 @@ export streamCamera = (getVideo) ->
 	pc.ontrack = (ev) -> 
 		mediaStream = new MediaStream pc.getReceivers().map (receiver) -> receiver.track
 		getVideo().srcObject = mediaStream
-		remoteAudio = document.createElement "audio"
-		remoteAudio.srcObject = mediaStream
-		remoteAudio.play()
+		getAudio().srcObject = mediaStream
+		getAudio().play()
 		console.log 'received track', ev.track
 	pc
