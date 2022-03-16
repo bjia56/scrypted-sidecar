@@ -13,8 +13,9 @@ configuration =
 		}
 	]
 
-export streamCamera = (getVideo, getAudio) ->
+export streamCamera = (getVideo, getAudio, isHd) ->
 	socket = io()
+	console.log "isHd " + isHd
 
 	rpcPeer = new RpcPeer 'cast-receiver', 'scrypted-server', (message, reject) ->
 		try
@@ -23,13 +24,14 @@ export streamCamera = (getVideo, getAudio) ->
 			reject e
 
 	socket.on 'server-signaling', (data) -> 
-		rpcPeer.handleMessage JSON.parse(data.toString())
+		rpcPeer.handleMessage (JSON.parse data.toString())
 
 	pc = new RTCPeerConnection configuration
 
-	session = new BrowserSignalingSession pc, () -> socket.close()
-	rpcPeer.params['session'] = session
-	rpcPeer.params['options'] = session.options
+	session = new BrowserSignalingSession pc, -> socket.close()
+	session.options.maxWidth = if isHd then 1280 else 640
+	rpcPeer.params.session = session
+	rpcPeer.params.options = session.options
 
 	pc.ontrack = (ev) -> 
 		mediaStream = new MediaStream pc.getReceivers().map (receiver) -> receiver.track

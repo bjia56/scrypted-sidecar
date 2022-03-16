@@ -2,5 +2,7 @@
     "files.exclude": {
         "**/node_modules/": true,
         "**/scrypted/": true
-    }
+    },
+    "files.trimFinalNewlines": true,
+    "files.trimTrailingWhitespace": true
 }

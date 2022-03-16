@@ -7,11 +7,14 @@ import Fade from '@mui/material/Fade'
 import Modal from '@mui/material/Modal'
 import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
+import IconButton from '@mui/material/IconButton'
+import HdTwoToneIcon from '@mui/icons-material/HdTwoTone'
+import SdTwoToneIcon from '@mui/icons-material/SdTwoTone'
 import axios from 'axios'
 import { callAPI } from '../util/API'
 import { streamCamera } from '../camera'
 
-defaultVideoModalStyle = 
+defaultVideoModalStyle =
 	position: 'absolute'
 	left: '50%'
 	top: '50%'
@@ -23,43 +26,80 @@ defaultVideoModalStyle =
 	outline: 0
 	p: 4
 
+defaultVideoDefinitionStyle =
+	position: 'absolute'
+
 videoElementId = 'remote-video'
 audioElementId = 'remote-audio'
+videoDefinitionElementId = 'video-definition-controls'
 
-export default CameraImageList = () =>
+export default CameraImageList = =>
 	[itemData, setItemData] = React.useState []
 	[openVideo, setOpenVideo] = React.useState false
 	[showLoading, setShowLoading] = React.useState false
 	[rpc, setRpc] = React.useState null
 	[videoModalStyle, setVideoModalStyle] = React.useState defaultVideoModalStyle
+	[videoDefinitionStyle, setVideoDefinitionStyle] = React.useState defaultVideoDefinitionStyle
+	[hdVideo, setHdVideo] = React.useState true
 
-	getVideoElement = () -> document.getElementById videoElementId
-	getAudioElement = () -> document.getElementById audioElementId
+	getVideoElement = -> document.getElementById videoElementId
+	getAudioElement = -> document.getElementById audioElementId
 
-	videoDimensions = () ->
+	videoDimensions = ->
 		videoElement = getVideoElement()
-		{ videoHeight, videoWidth } = videoElement
+		{
+			offsetTop, offsetLeft,
+			offsetHeight, offsetWidth,
+			videoHeight, videoWidth
+		} = videoElement
 
-	resizeModal = () ->
-		modalStyle = Object.assign {}, videoModalStyle
+	resizeModal = ->
+		newStyle = Object.assign {}, videoModalStyle
 		{ videoHeight, videoWidth } = videoDimensions()
 		{ innerHeight, innerWidth } = window
 		if videoHeight / videoWidth > innerHeight / innerWidth
-			modalStyle.height = 0.9 * innerHeight
-			modalStyle.width = ((0.9 * innerHeight) / videoHeight) * videoWidth
+			# window width is longer than video width, so calculate based on height restriction
+			newStyle.height = 0.9 * innerHeight
+			newStyle.width = ((0.9 * innerHeight) / videoHeight) * videoWidth
 		else
-			modalStyle.width = 0.9 * innerWidth
-			modalStyle.height = ((0.9 * innerWidth) / videoWidth) * videoHeight
-		setVideoModalStyle modalStyle
+			# window height is longer than video height, so calculate based on width restriction
+			newStyle.width = 0.9 * innerWidth
+			newStyle.height = ((0.9 * innerWidth) / videoWidth) * videoHeight
+		setVideoModalStyle newStyle
 
-	videoOnPlay = () ->
+	placeVideoDefinitionControls = ->
+		{
+			offsetTop, offsetLeft,
+			offsetHeight, offsetWidth,
+			videoHeight, videoWidth
+		} = videoDimensions()
+		newStyle = Object.assign {}, videoDefinitionStyle
+		newStyle.top = offsetTop + 5
+		newStyle.left = offsetLeft + 5
+
+		# correct for true video dimensions
+		if videoHeight / videoWidth > offsetHeight / offsetWidth
+			# video container width is longer than true video width
+			scaledVideoWidth = (offsetHeight / videoHeight) * videoWidth
+			newStyle.left += (offsetWidth - scaledVideoWidth) / 2
+		else
+			# video container height is longer than true video height
+			scaledVideoHeight = (offsetWidth / videoWidth) * videoHeight
+			newStyle.top += (offsetHeight - scaledVideoHeight) / 2
+
+		setVideoDefinitionStyle newStyle
+
+	videoOnPlay = ->
 		setShowLoading false
 		window.addEventListener 'resize', resizeModal
+		window.addEventListener 'resize', placeVideoDefinitionControls
 		resizeModal()
+		placeVideoDefinitionControls()
 
-	closeVideoModal = () ->
+	closeVideoModal = ->
 		setOpenVideo false
 		window.removeEventListener 'resize', resizeModal
+		window.removeEventListener 'resize', placeVideoDefinitionControls
 		videoElement = getVideoElement()
 		videoElement.removeEventListener 'play', videoOnPlay
 		videoElement.pause()
@@ -69,16 +109,24 @@ export default CameraImageList = () =>
 		audioElement.srcObject = null
 		rpc.close()
 		setVideoModalStyle defaultVideoModalStyle
+		setVideoDefinitionStyle defaultVideoDefinitionStyle
 
-	openVideoModal = () ->
+	openVideoModal = (isHdVideo) ->
 		setOpenVideo true
 		setShowLoading true
-		setTimeout () ->
+		setTimeout ->
 			getVideoElement().addEventListener 'play', videoOnPlay
-			setRpc (streamCamera getVideoElement, getAudioElement)
+			setRpc (streamCamera getVideoElement, getAudioElement, isHdVideo)
 		, 0
 
-	React.useEffect () -> 
+	setHd = (isHd) -> ->
+		unless isHd == hdVideo
+			console.log "Setting hdVideo " + isHd
+			setHdVideo isHd
+			closeVideoModal()
+			openVideoModal isHd
+
+	React.useEffect ->
 		callAPI axios.get, '/api/cameras'
 		.then (res) -> setItemData res.data || []
 	, []
@@ -96,6 +144,16 @@ export default CameraImageList = () =>
 					}
 					<video autoPlay={true} id={videoElementId} playsInline={true} width="100%" height="100%"></video>
 					<audio id={audioElementId}/>
+					{ not showLoading &&
+						<div id={videoDefinitionElementId} style={videoDefinitionStyle}>
+							<IconButton color={ if hdVideo then 'default' else 'primary' } disableRipple={ not hdVideo } onClick={ setHd(false) }>
+								<SdTwoToneIcon/>
+							</IconButton>
+							<IconButton color={ if hdVideo then 'primary' else 'default' } disableRipple={ hdVideo } onClick={ setHd(true) }>
+								<HdTwoToneIcon/>
+							</IconButton>
+						</div>
+					}
 				</Box>
 			</Fade>
 		</Modal>
@@ -103,8 +161,8 @@ export default CameraImageList = () =>
 			<ImageListItem key="Subheader" cols={2}>
 				<ListSubheader component="div">Cameras</ListSubheader>
 			</ImageListItem>
-			{itemData.map (item) =>
-				<ImageListItem key={item.img} onClick={openVideoModal}>
+			{itemData.map (item) ->
+				<ImageListItem key={item.img} onClick={### eat event args ### -> openVideoModal(hdVideo)}>
 					<img
 						src={item.img}
 						alt={item.name}
@@ -118,4 +176,3 @@ export default CameraImageList = () =>
 			}
 		</ImageList>
 	</div>
-
