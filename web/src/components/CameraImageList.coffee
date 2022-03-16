@@ -41,7 +41,7 @@ export default CameraImageList = () =>
 		{ videoHeight, videoWidth } = videoElement
 
 	resizeModal = () ->
-		modalStyle = JSON.parse (JSON.stringify videoModalStyle)
+		modalStyle = Object.assign {}, videoModalStyle
 		{ videoHeight, videoWidth } = videoDimensions()
 		{ innerHeight, innerWidth } = window
 		if videoHeight / videoWidth > innerHeight / innerWidth
