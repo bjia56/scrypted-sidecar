@@ -1,11 +1,9 @@
 # syntax=docker/dockerfile:1
 FROM node:16-bullseye
 
-# initial update
-RUN apt update && apt -y upgrade
-
-# dependencies
-RUN apt -y install ffmpeg
+# initial update and dependencies
+RUN apt update && apt -y upgrade && \
+    apt -y install --no-install-recommends ffmpeg
 
 # bring source into container
 WORKDIR /server
