@@ -82,7 +82,6 @@ export class Server {
         startBrowserRTCSignaling(camera, socket, this.sdk);
       } catch (e) {
         console.log("exception while handling socket connection", e);
-      } finally {
         socket.disconnect();
       }
     });
