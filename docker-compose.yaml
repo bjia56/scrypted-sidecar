@@ -34,8 +34,7 @@ services:
          max-file: "10"
 
   web:
-    build:
-      context: ./web
+    image: scrypted-sidecar/web
     container_name: web
     restart: unless-stopped
     environment:
@@ -48,8 +47,7 @@ services:
          max-file: "10"
 
   server:
-    build:
-      context: ./server
+    image: scrypted-sidecar/server
     container_name: server
     restart: unless-stopped
     env_file: .env.server
