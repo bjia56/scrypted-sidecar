@@ -77,8 +77,14 @@ export class Server {
 
   private handleSocketConnection(): void {
     this.io.on("connection", socket => {
-      const camera = this.sdk.systemManager.getDeviceByName<VideoCamera>("Camera 1");
-      startBrowserRTCSignaling(camera, socket, this.sdk);
+      try {
+        const camera = this.sdk.systemManager.getDeviceByName<VideoCamera>("Camera 1");
+        startBrowserRTCSignaling(camera, socket, this.sdk);
+      } catch (e) {
+        console.log("exception while handling socket connection", e);
+      } finally {
+        socket.disconnect();
+      }
     });
   }
 

@@ -250,6 +250,11 @@ export async function startRTCPeerConnection(sdk: ScryptedClientStatic, mediaObj
 
     const answer = await session.createLocalDescription('answer', setup, async (candidate) => {
       console.log('remote candidate', candidate);
+      if (candidate.candidate == '') {
+        // looks like the wrtc library does not like it when candidates is empty
+        console.log('ignoring end of candidates indicator');
+        return;
+      }
       pc.addIceCandidate(candidate);
     });
 
@@ -295,7 +300,6 @@ export async function startBrowserRTCSignaling(camera: ScryptedDevice & VideoCam
   }
   catch (e) {
     console.error("error negotiating browser RTC signaling", e);
-    sio.disconnect();
     throw e;
   }
 }
