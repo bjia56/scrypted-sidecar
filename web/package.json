@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "NODE_ENV=development npx coffee server.coffee",
-    "build": "next build && next export",
+    "build": "next build",
     "start": "NODE_ENV=production npx coffee server.coffee",
     "lint": "next lint"
   },

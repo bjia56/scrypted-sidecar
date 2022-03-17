@@ -13,7 +13,7 @@ import { startBrowserRTCSignaling } from "./ffmpeg-to-wrtc";
 
 async function getSDK(): Promise<ScryptedClientStatic> {
   const sdk = await connectScryptedClient({
-    baseUrl: 'https://localhost:10443',
+    baseUrl: process.env.SCRYPTED_HOST || 'https://localhost:10443',
     pluginId: "@scrypted/core",
     username: process.env.SCRYPTED_USERNAME || 'admin',
     password: process.env.SCRYPTED_PASSWORD || 'admin',
@@ -53,7 +53,7 @@ export class Server {
   private io: SocketIOServer;
   private sdk: ScryptedClientStatic;
 
-  private readonly DEFAULT_PORT = 5000;
+  private readonly DEFAULT_PORT = parseInt(process.env.PORT) || 5000;
 
   constructor() {
     this.initialize();

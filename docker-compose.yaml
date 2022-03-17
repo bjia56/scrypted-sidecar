@@ -1,0 +1,63 @@
+version: '3.5'
+
+services:
+  scrypted:
+    image: koush/scrypted
+    container_name: scrypted
+    restart: unless-stopped
+    volumes:
+      - ~/.scrypted/volume:/server/volume
+    ports:
+      - "10443:10443"
+    logging:
+      driver: "json-file"
+      options:
+         max-size: "10m"
+         max-file: "10"
+
+  nginx:
+    image: nginx
+    container_name: nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    env_file: .env.nginx
+    volumes:
+      - ./nginx:/etc/nginx
+    tmpfs:
+      - /etc/nginx/conf.d
+    logging:
+      driver: "json-file"
+      options:
+         max-size: "10m"
+         max-file: "10"
+
+  web:
+    build:
+      context: ./web
+    container_name: web
+    restart: unless-stopped
+    environment:
+      PORT: 3000
+      BACKEND_URL: http://server:5000
+    logging:
+      driver: "json-file"
+      options:
+         max-size: "10m"
+         max-file: "10"
+
+  server:
+    build:
+      context: ./server
+    container_name: server
+    restart: unless-stopped
+    env_file: .env.server
+    environment:
+      PORT: 5000
+      SCRYPTED_HOST: http://scrypted:10080
+    logging:
+      driver: "json-file"
+      options:
+         max-size: "10m"
+         max-file: "10"
