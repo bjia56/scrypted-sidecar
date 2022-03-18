@@ -291,12 +291,16 @@ export async function createBrowserSignalingSession(sio: SocketIOSocket) {
   return session;
 }
 
-export async function startBrowserRTCSignaling(camera: ScryptedDevice & VideoCamera, sio: SocketIOSocket, sdk: ScryptedClientStatic) {
+export async function startBrowserRTCSignaling(sio: SocketIOSocket, sdk: ScryptedClientStatic) {
   try {
     const session = await createBrowserSignalingSession(sio);
-    const options = await session.getOptions();
+    const options = await (session.getOptions() as Promise<RTCSignalingClientOptions & { cameraName: string }>);
 
-    startRTCPeerConnectionForBrowser(sdk, await camera.getVideoStream(), session, options);
+    console.log("Streaming", options.cameraName);
+
+    const camera = sdk.systemManager.getDeviceByName<VideoCamera>(options.cameraName);
+
+    startRTCPeerConnectionForBrowser(sdk, await camera.getVideoStream(), session, options as RTCSignalingClientOptions);
   }
   catch (e) {
     console.error("error negotiating browser RTC signaling", e);

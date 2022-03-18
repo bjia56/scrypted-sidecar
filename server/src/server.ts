@@ -43,7 +43,7 @@ function auth(req: Request, res: Response, next: NextFunction): void {
 
 function loggedIn(req: Request): boolean {
   const res = req.session && req.session['user'] == getUsername();
-  console.log(res);
+  console.log('logged in:', res);
   return res;
 }
 
@@ -78,8 +78,7 @@ export class Server {
   private handleSocketConnection(): void {
     this.io.on("connection", socket => {
       try {
-        const camera = this.sdk.systemManager.getDeviceByName<VideoCamera>("Camera 1");
-        startBrowserRTCSignaling(camera, socket, this.sdk);
+        startBrowserRTCSignaling(socket, this.sdk);
       } catch (e) {
         console.log("exception while handling socket connection", e);
         socket.disconnect();
@@ -99,13 +98,6 @@ export class Server {
     this.configureAPILogin(staticWeb);
     this.configureAPICameras();
 
-    this.app.get('/api/snapshot', auth, async (req, res) => {
-      const camera = await this.sdk.systemManager.getDeviceByName<Camera>("Camera 1");
-      const picture = await camera.takePicture()
-      const buf = await this.sdk.mediaManager.convertMediaObjectToBuffer(picture, 'image/*');
-      console.log("Got snapshot");
-      res.send("data:image/png;base64," + buf.toString('base64'));
-    })
     this.app.use(auth, express.static(staticWeb));
   }
 

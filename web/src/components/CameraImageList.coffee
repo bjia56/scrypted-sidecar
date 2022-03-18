@@ -40,6 +40,7 @@ export default CameraImageList = ->
 	[videoModalStyle, setVideoModalStyle] = React.useState defaultVideoModalStyle
 	[videoDefinitionStyle, setVideoDefinitionStyle] = React.useState defaultVideoDefinitionStyle
 	[hdVideo, setHdVideo] = React.useState true
+	[selectedCameraName, setSelectedCameraName] = React.useState null
 
 	getVideoElement = -> document.getElementById videoElementId
 	getAudioElement = -> document.getElementById audioElementId
@@ -107,15 +108,16 @@ export default CameraImageList = ->
 		audioElement.pause()
 		audioElement.srcObject = null
 		rpc.close()
+		setRpc null
 		setVideoModalStyle defaultVideoModalStyle
 		setVideoDefinitionStyle defaultVideoDefinitionStyle
 
-	openVideoModal = (isHdVideo) ->
+	openVideoModal = (cameraName, isHdVideo) ->
 		setOpenVideo true
 		setShowLoading true
 		setTimeout ->
 			getVideoElement().addEventListener 'play', videoOnPlay
-			setRpc (streamCamera getVideoElement, getAudioElement, isHdVideo)
+			setRpc (streamCamera cameraName, getVideoElement, getAudioElement, isHdVideo)
 		, 0
 
 	setHd = (isHd) -> ->
@@ -123,11 +125,17 @@ export default CameraImageList = ->
 			console.log "Setting hdVideo " + isHd
 			setHdVideo isHd
 			closeVideoModal()
-			openVideoModal isHd
+			openVideoModal selectedCameraName, isHd
 
 	React.useEffect ->
 		axios.get '/api/cameras'
 		.then (res) -> setItemData res.data || []
+
+		# cleanup
+		() ->
+			if rpc?
+				rpc.close()
+				setRpc null
 	, []
 
 	<div>
@@ -161,7 +169,12 @@ export default CameraImageList = ->
 				<ListSubheader component="div">Cameras</ListSubheader>
 			</ImageListItem>
 			{itemData.map (item) ->
-				<ImageListItem key={item.img} onClick={### eat event args ### -> openVideoModal(hdVideo)}>
+				<ImageListItem key={item.img} onClick={
+					### eat event args ###
+					->
+						setSelectedCameraName item.name
+						openVideoModal item.name, hdVideo
+				}>
 					<img
 						src={item.img}
 						alt={item.name}
