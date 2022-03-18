@@ -6,6 +6,7 @@ export useLoggedIn = (refreshState) ->
 
 	React.useEffect ->
 		if refreshState
+			console.log 'refreshing'
 			axios.get "/api/loggedIn"
 			.then () =>
 				setIsLoggedIn true
