@@ -251,7 +251,7 @@ export async function startRTCPeerConnection(sdk: ScryptedClientStatic, mediaObj
     const answer = await session.createLocalDescription('answer', setup, async (candidate) => {
       console.log('remote candidate', candidate);
       if (candidate.candidate == '') {
-        // looks like the wrtc library does not like it when candidates is empty
+        // looks like the wrtc library does not like it when candidate is empty
         console.log('ignoring end of candidates indicator');
         return;
       }

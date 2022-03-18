@@ -11,7 +11,6 @@ import IconButton from '@mui/material/IconButton'
 import HdTwoToneIcon from '@mui/icons-material/HdTwoTone'
 import SdTwoToneIcon from '@mui/icons-material/SdTwoTone'
 import axios from 'axios'
-import { callAPI } from '../util/API'
 import { streamCamera } from '../camera'
 
 defaultVideoModalStyle =
@@ -33,7 +32,7 @@ videoElementId = 'remote-video'
 audioElementId = 'remote-audio'
 videoDefinitionElementId = 'video-definition-controls'
 
-export default CameraImageList = =>
+export default CameraImageList = ->
 	[itemData, setItemData] = React.useState []
 	[openVideo, setOpenVideo] = React.useState false
 	[showLoading, setShowLoading] = React.useState false
@@ -127,7 +126,7 @@ export default CameraImageList = =>
 			openVideoModal isHd
 
 	React.useEffect ->
-		callAPI axios.get, '/api/cameras'
+		axios.get '/api/cameras'
 		.then (res) -> setItemData res.data || []
 	, []
 

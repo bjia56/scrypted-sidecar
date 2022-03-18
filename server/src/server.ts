@@ -113,8 +113,11 @@ export class Server {
     this.app.use(bodyParser.json());
     this.app.use(bodyParser.urlencoded({ extended: true }));
 
-    this.app.get('/api/loggedin', (req: Request, res: Response) => {
-      res.send("" + loggedIn(req));
+    this.app.get('/api/loggedIn', (req: Request, res: Response) => {
+      if (!loggedIn(req)) {
+        res.status(401);
+      }
+      res.send();
     })
 
     this.app.get('/api/logout', (req: Request, res: Response) => {
