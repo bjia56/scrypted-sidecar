@@ -129,7 +129,16 @@ export default CameraImageList = ->
 
 	React.useEffect ->
 		axios.get '/api/cameras'
-		.then (res) -> setItemData res.data || []
+		.then (res) ->
+			cameras = res.data || []
+			setItemData cameras
+
+			cameras.map (camera, idx) ->
+				axios.get '/api/camera/'+camera.name+'/snapshot'
+				.then (res) ->
+					img = res.data || ''
+					cameras[idx].img = img
+					setItemData (JSON.parse (JSON.stringify cameras))
 
 		# cleanup
 		() ->
@@ -164,7 +173,7 @@ export default CameraImageList = ->
 				</Box>
 			</Fade>
 		</Modal>
-		<ImageList sx={{ width: 500, height: 450 }}>
+		<ImageList>
 			<ImageListItem key="Subheader" cols={2}>
 				<ListSubheader component="div">Cameras</ListSubheader>
 			</ImageListItem>
@@ -175,8 +184,9 @@ export default CameraImageList = ->
 						setSelectedCameraName item.name
 						openVideoModal item.name, hdVideo
 				}>
+					{ ### https://stackoverflow.com/a/14115340 ### }
 					<img
-						src={item.img}
+						src={item.img || '/not_loaded.png'}
 						alt={item.name}
 						loading="lazy"
 					/>

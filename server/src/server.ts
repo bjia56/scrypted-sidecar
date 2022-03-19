@@ -142,12 +142,7 @@ export class Server {
 
       const result = await Promise.all(
         cameras.map(async (camera: ScryptedDevice & Camera) => {
-          const picture = await camera.takePicture();
-          const buf = await this.sdk.mediaManager.convertMediaObjectToBuffer(picture, 'image/*');
-          const resized = await sharp(buf).resize({ width: 640 }).toBuffer();
-
           return {
-            img: "data:image/png;base64," + resized.toString('base64'),
             name: camera.name,
             room: camera.room
           };
@@ -155,6 +150,16 @@ export class Server {
       );
 
       res.send(JSON.stringify(result));
-    })
+    });
+
+    this.app.get('/api/camera/:name/snapshot', auth, async (req: Request, res: Response) => {
+      const name = req.params["name"];
+      const camera = await this.sdk.systemManager.getDeviceByName<Camera>(name);
+      const picture = await camera.takePicture();
+      const buf = await this.sdk.mediaManager.convertMediaObjectToBuffer(picture, 'image/*');
+      const resized = await sharp(buf).resize({ width: 640 }).toBuffer();
+
+      res.send("data:image/png;base64," + resized.toString('base64'))
+    });
   }
 }
