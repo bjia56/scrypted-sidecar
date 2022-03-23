@@ -1,5 +1,6 @@
 import express, { Application, Request, Response, NextFunction } from "express";
 import session from "express-session";
+import sessionFileStore from "session-file-store";
 import bodyParser from "body-parser";
 import { Server as SocketIOServer } from "socket.io";
 import { createServer, Server as HTTPServer } from "http";
@@ -10,6 +11,8 @@ import sharp from "sharp";
 import { connectScryptedClient, ScryptedClientStatic } from '../scrypted/packages/client/src';
 import { ScryptedInterface, ScryptedDevice, VideoCamera, Camera } from "../scrypted/sdk/types/index";
 import { startBrowserRTCSignaling } from "./ffmpeg-to-wrtc";
+
+const FileStore = sessionFileStore(session);
 
 async function getSDK(): Promise<ScryptedClientStatic> {
   const sdk = await connectScryptedClient({
@@ -66,8 +69,11 @@ export class Server {
     this.app = express();
     this.app.use(session({
       secret: getCookieSecret(),
+      store: new FileStore({
+        path: process.env.SESSION_STORE || './sessions'
+      }),
       resave: false,
-      saveUninitialized: true,
+      saveUninitialized: false,
       cookie: { maxAge: 1000 * 60 * 60 * 24 * 7 },
     }));
     this.httpServer = createServer(this.app);

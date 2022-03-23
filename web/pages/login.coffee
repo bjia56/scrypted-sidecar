@@ -1,11 +1,11 @@
 import * as React from 'react'
 import { Box, FormControl, Button, Input, Modal, Fade, Typography } from '@mui/material';
 
-loginModalStyle = 
+loginModalStyle =
 	position: 'absolute'
 	left: '50%'
-	transform: 'translate(-50%, 50%)'
-	width: '500px'
+	top: '50%'
+	transform: 'translate(-50%, -50%)'
 	bgcolor: 'background.paper'
 	border: '2px solid #000'
 	outline: 0

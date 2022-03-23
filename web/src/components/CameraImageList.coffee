@@ -39,7 +39,7 @@ export default CameraImageList = ->
 	[rpc, setRpc] = React.useState null
 	[videoModalStyle, setVideoModalStyle] = React.useState defaultVideoModalStyle
 	[videoDefinitionStyle, setVideoDefinitionStyle] = React.useState defaultVideoDefinitionStyle
-	[hdVideo, setHdVideo] = React.useState true
+	[hdVideo, setHdVideo] = React.useState false
 	[selectedCameraName, setSelectedCameraName] = React.useState null
 
 	getVideoElement = -> document.getElementById videoElementId
@@ -184,7 +184,6 @@ export default CameraImageList = ->
 						setSelectedCameraName item.name
 						openVideoModal item.name, hdVideo
 				}>
-					{ ### https://stackoverflow.com/a/14115340 ### }
 					<img
 						src={item.img || '/not_loaded.png'}
 						alt={item.name}
