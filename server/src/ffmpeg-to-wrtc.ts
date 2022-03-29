@@ -22,6 +22,8 @@ const configuration: RTCConfiguration = {
 
 const ffmpegLocation = '/usr/bin/ffmpeg';
 
+const scryptedHost = process.env.SCRYPTED_HOST || 'localhost'
+
 export async function startRTCPeerConnectionFFmpegInput(ffInput: FFMpegInput, options?: {
   maxWidth: number,
 }): Promise<RTCPeerConnection> {
@@ -109,6 +111,13 @@ export async function startRTCPeerConnectionFFmpegInput(ffInput: FFMpegInput, op
     // don't think this is actually necessary but whatever.
     '-y',
   ];
+
+  for (let i = 0; i < ffInput.inputArguments.length; i++) {
+    const arg = ffInput.inputArguments[i];
+    if (arg.startsWith("rtsp")) {
+      ffInput.inputArguments[i] = arg.replace("localhost", scryptedHost).replace("127.0.0.1", scryptedHost)
+    }
+  }
 
   args.push(...ffInput.inputArguments);
 

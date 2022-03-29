@@ -16,7 +16,7 @@ const FileStore = sessionFileStore(session);
 
 async function getSDK(): Promise<ScryptedClientStatic> {
   const sdk = await connectScryptedClient({
-    baseUrl: process.env.SCRYPTED_HOST || 'https://localhost:10443',
+    baseUrl: `https://${process.env.SCRYPTED_HOST || 'localhost'}:${process.env.SCRYPTED_PORT || '10443'}`,
     pluginId: "@scrypted/core",
     username: process.env.SCRYPTED_USERNAME || 'admin',
     password: process.env.SCRYPTED_PASSWORD || 'admin',
