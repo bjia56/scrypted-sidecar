@@ -136,9 +136,11 @@ export default CameraImageList = ->
 			cameras.map (camera, idx) ->
 				axios.get '/api/camera/'+camera.name+'/snapshot'
 				.then (res) ->
-					img = res.data || ''
+					img = res.data || null
 					cameras[idx].img = img
 					setItemData (JSON.parse (JSON.stringify cameras))
+				.catch (e) -> console.log e
+		.catch (e) -> console.log e
 
 		# cleanup
 		() ->

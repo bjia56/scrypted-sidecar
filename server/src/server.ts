@@ -46,7 +46,6 @@ function auth(req: Request, res: Response, next: NextFunction): void {
 
 function loggedIn(req: Request): boolean {
   const res = req.session && req.session['user'] == getUsername();
-  console.log('logged in:', res);
   return res;
 }
 
@@ -83,12 +82,9 @@ export class Server {
 
   private handleSocketConnection(): void {
     this.io.on("connection", socket => {
-      try {
-        startBrowserRTCSignaling(socket, this.sdk);
-      } catch (e) {
-        console.log("exception while handling socket connection", e);
-        socket.disconnect();
-      }
+      startBrowserRTCSignaling(socket, this.sdk).catch(
+        e => console.log("exception while running WebRTC", e)
+      );
     });
   }
 
@@ -136,36 +132,46 @@ export class Server {
 
   private configureAPICameras(): void {
     this.app.get('/api/cameras', auth, async (_: Request, res: Response) => {
-      const sysState = this.sdk.systemManager.getSystemState()
-      const deviceIds = Object.keys(sysState);
+      try {
+        const sysState = this.sdk.systemManager.getSystemState()
+        const deviceIds = Object.keys(sysState);
 
-      const cameras = deviceIds.map((deviceId: string) => {
-        const device = this.sdk.systemManager.getDeviceById(deviceId);
-        if (device.interfaces.includes(ScryptedInterface.Camera)) {
-          return <ScryptedDevice & Camera>device;
-        }
-      }).filter((i) => !!i);
+        const cameras = deviceIds.map((deviceId: string) => {
+          const device = this.sdk.systemManager.getDeviceById(deviceId);
+          if (device.interfaces.includes(ScryptedInterface.Camera)) {
+            return <ScryptedDevice & Camera>device;
+          }
+        }).filter((i) => !!i);
 
-      const result = await Promise.all(
-        cameras.map(async (camera: ScryptedDevice & Camera) => {
-          return {
-            name: camera.name,
-            room: camera.room
-          };
-        })
-      );
+        const result = await Promise.all(
+          cameras.map(async (camera: ScryptedDevice & Camera) => {
+            return {
+              name: camera.name,
+              room: camera.room
+            };
+          })
+        );
 
-      res.send(JSON.stringify(result));
+        res.send(JSON.stringify(result));
+      } catch (e) {
+        console.log("error in /api/cameras", e)
+        res.status(500).send("internal server error")
+      }
     });
 
     this.app.get('/api/camera/:name/snapshot', auth, async (req: Request, res: Response) => {
-      const name = req.params["name"];
-      const camera = await this.sdk.systemManager.getDeviceByName<Camera>(name);
-      const picture = await camera.takePicture();
-      const buf = await this.sdk.mediaManager.convertMediaObjectToBuffer(picture, 'image/*');
-      const resized = await sharp(buf).resize({ width: 640 }).toBuffer();
+      try {
+        const name = req.params["name"];
+        const camera = await this.sdk.systemManager.getDeviceByName<Camera>(name);
+        const picture = await camera.takePicture();
+        const buf = await this.sdk.mediaManager.convertMediaObjectToBuffer(picture, 'image/*');
+        const resized = await sharp(buf).resize({ width: 640 }).toBuffer();
 
-      res.send("data:image/png;base64," + resized.toString('base64'))
+        res.send("data:image/png;base64," + resized.toString('base64'))
+      } catch (e) {
+        console.log("error in /api/camera/:name/snapshot", e)
+        res.status(500).send("internal server error")
+      }
     });
   }
 }
