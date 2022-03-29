@@ -24,6 +24,7 @@ defaultVideoModalStyle =
 	boxShadow: 24
 	outline: 0
 	p: 4
+	padding: 0
 
 defaultVideoDefinitionStyle =
 	position: 'absolute'
@@ -57,14 +58,16 @@ export default CameraImageList = ->
 		newStyle = Object.assign {}, videoModalStyle
 		{ videoHeight, videoWidth } = videoDimensions()
 		{ innerHeight, innerWidth } = window
+
+		scalingFactor = 1
 		if videoHeight / videoWidth > innerHeight / innerWidth
 			# window width is longer than video width, so calculate based on height restriction
-			newStyle.height = 0.9 * innerHeight
-			newStyle.width = ((0.9 * innerHeight) / videoHeight) * videoWidth
+			newStyle.height = scalingFactor * innerHeight
+			newStyle.width = ((scalingFactor * innerHeight) / videoHeight) * videoWidth
 		else
 			# window height is longer than video height, so calculate based on width restriction
-			newStyle.width = 0.9 * innerWidth
-			newStyle.height = ((0.9 * innerWidth) / videoWidth) * videoHeight
+			newStyle.width = scalingFactor * innerWidth
+			newStyle.height = ((scalingFactor * innerWidth) / videoWidth) * videoHeight
 		setVideoModalStyle newStyle
 
 	placeVideoDefinitionControls = ->
@@ -180,7 +183,7 @@ export default CameraImageList = ->
 				<ListSubheader component="div">Cameras</ListSubheader>
 			</ImageListItem>
 			{itemData.map (item) ->
-				<ImageListItem key={item.img} onClick={
+				<ImageListItem key={item.name} onClick={
 					### eat event args ###
 					->
 						setSelectedCameraName item.name
