@@ -1,9 +1,7 @@
 import * as React from 'react'
-import { useRouter } from 'next/router'
 import { useLoggedIn } from '../util/loggedIn'
 
 export default RequireLoggedIn = ({ children }) ->
-	router = useRouter()
 	[refreshLogin, setRefreshLogin] = React.useState true
 	isLoggedIn = useLoggedIn refreshLogin
 
@@ -14,8 +12,6 @@ export default RequireLoggedIn = ({ children }) ->
 
 	React.useEffect ->
 		if isLoggedIn? && not isLoggedIn
-			router.push {
-				pathname: '/login'
-			}
+			window.location = '/login'
 
 	isLoggedIn? && isLoggedIn && children

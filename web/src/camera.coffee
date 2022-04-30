@@ -30,7 +30,8 @@ export streamCamera = (cameraName, getVideo, getAudio, isHd) ->
 
 	session = new BrowserSignalingSession pc, -> socket.close()
 	session.options.cameraName = cameraName
-	session.options.maxWidth = if isHd then 1280 else 640
+	session.options.maxWidth = if isHd then 1920 else 1280
+	session.options.maxHeight = if isHd then 1080 else 720
 	rpcPeer.params.session = session
 	rpcPeer.params.options = session.options
 

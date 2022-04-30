@@ -4,7 +4,7 @@ import child_process from 'child_process';
 import net from 'net';
 import { listenZero } from "../scrypted/common/src/listen-cluster";
 import { ffmpegLogInitialOutput } from "../scrypted/common/src/media-helpers";
-import { FFMpegInput, ScryptedMimeTypes, MediaObject, RTCAVSignalingSetup, RTCSignalingClientOptions, RTCSignalingSession, ScryptedDevice, VideoCamera, RTCSignalingClientSession } from "../scrypted/sdk/types/index";
+import { FFmpegInput, ScryptedMimeTypes, MediaObject, RTCAVSignalingSetup,  RTCSignalingSession, RTCSignalingOptions, VideoCamera } from "../scrypted/sdk/types/index";
 import { RpcPeer } from "../scrypted/server/src/rpc";
 import * as wrtc from "@koush/wrtc";
 import { Socket as SocketIOSocket } from "socket.io";
@@ -20,13 +20,16 @@ const configuration: RTCConfiguration = {
   ],
 };
 
+interface Resolution {
+  maxHeight?: number;
+  maxWidth?: number;
+}
+
 const ffmpegLocation = '/usr/bin/ffmpeg';
 
 const scryptedHost = process.env.SCRYPTED_HOST || 'localhost'
 
-export async function startRTCPeerConnectionFFmpegInput(ffInput: FFMpegInput, options?: {
-  maxWidth: number,
-}): Promise<RTCPeerConnection> {
+export async function startRTCPeerConnectionFFmpegInput(ffInput: FFmpegInput, options?: Resolution): Promise<RTCPeerConnection> {
   const pc = new wrtc.RTCPeerConnection(configuration);
 
   const { RTCVideoSource, RTCAudioSource } = wrtc.nonstandard;
@@ -139,8 +142,9 @@ export async function startRTCPeerConnectionFFmpegInput(ffInput: FFMpegInput, op
   args.push('-r', '15');
   args.push('-vcodec', 'rawvideo');
   args.push('-pix_fmt', 'yuv420p');
-  if (options?.maxWidth) {
-    args.push('-vf', `scale=${options.maxWidth}:-1`);
+  if (options?.maxWidth && options.maxHeight) {
+    // https://superuser.com/a/891478
+    args.push('-vf', `scale=(iw*sar)*min(${options.maxWidth}/(iw*sar)\\,${options.maxHeight}/ih):ih*min(${options.maxWidth}/(iw*sar)\\,${options.maxHeight}/ih), pad=${options.maxWidth}:${options.maxHeight}:(${options.maxWidth}-iw*min(${options.maxWidth}/iw\\,${options.maxHeight}/ih))/2:(${options.maxHeight}-ih*min(${options.maxWidth}/iw\\,${options.maxHeight}/ih))/2`);
   }
   args.push('-f', 'rawvideo');
   args.push(`tcp://127.0.0.1:${videoPort}`);
@@ -228,9 +232,7 @@ export async function startRTCPeerConnectionFFmpegInput(ffInput: FFMpegInput, op
   return pc;
 }
 
-export async function startRTCPeerConnection(sdk: ScryptedClientStatic, mediaObject: MediaObject, session: RTCSignalingSession, options?: RTCSignalingClientOptions & {
-  maxWidth: number,
-}) {
+export async function startRTCPeerConnection(sdk: ScryptedClientStatic, mediaObject: MediaObject, session: RTCSignalingSession, options?: RTCSignalingOptions & Resolution) {
   const buffer = await sdk.mediaManager.convertMediaObjectToBuffer(mediaObject, ScryptedMimeTypes.FFmpegInput);
   const ffInput = JSON.parse(buffer.toString());
 
@@ -275,9 +277,9 @@ export async function startRTCPeerConnection(sdk: ScryptedClientStatic, mediaObj
   }
 }
 
-export function startRTCPeerConnectionForBrowser(sdk: ScryptedClientStatic, mediaObject: MediaObject, session: RTCSignalingSession, options?: RTCSignalingClientOptions) {
+export function startRTCPeerConnectionForBrowser(sdk: ScryptedClientStatic, mediaObject: MediaObject, session: RTCSignalingSession, options?: RTCSignalingOptions & Resolution) {
   return startRTCPeerConnection(sdk, mediaObject, session, Object.assign({
-    maxWidth: 960,
+    maxWidth: 640, maxHeight: 480
   }, options || {}));
 }
 
@@ -296,20 +298,20 @@ export async function createBrowserSignalingSession(sio: SocketIOSocket) {
     peer.handleMessage(json);
   });
 
-  const session: RTCSignalingClientSession = await peer.getParam('session');
+  const session: RTCSignalingSession = await peer.getParam('session');
   return session;
 }
 
 export async function startBrowserRTCSignaling(sio: SocketIOSocket, sdk: ScryptedClientStatic) {
   try {
     const session = await createBrowserSignalingSession(sio);
-    const options = await (session.getOptions() as Promise<RTCSignalingClientOptions & { cameraName: string }>);
+    const options = await (session.getOptions() as Promise<RTCSignalingOptions & Resolution & { cameraName: string }>);
 
     console.log("Streaming", options.cameraName);
 
     const camera = sdk.systemManager.getDeviceByName<VideoCamera>(options.cameraName);
 
-    startRTCPeerConnectionForBrowser(sdk, await camera.getVideoStream(), session, options as RTCSignalingClientOptions);
+    startRTCPeerConnectionForBrowser(sdk, await camera.getVideoStream(), session, options as RTCSignalingOptions & Resolution);
   }
   catch (e) {
     console.error("error negotiating browser RTC signaling", e);
