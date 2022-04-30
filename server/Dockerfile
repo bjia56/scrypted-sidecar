@@ -10,7 +10,7 @@ WORKDIR /server
 COPY . .
 
 # install node dependencies
-RUN npm i
+RUN npm i --production
 
 # run
 ENTRYPOINT npm start

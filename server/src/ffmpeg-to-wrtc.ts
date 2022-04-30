@@ -161,7 +161,7 @@ export async function startRTCPeerConnectionFFmpegInput(ffInput: FFmpegInput, op
   cp.on('exit', () => {
     videoServer.close();
     audioServer?.close();
-    pc.close();
+    //pc.close();
   });
 
   let outputSeen = false;
@@ -225,7 +225,7 @@ export async function startRTCPeerConnectionFFmpegInput(ffInput: FFmpegInput, op
 
   setTimeout(() => {
     if (pc.connectionState !== 'connected') {
-      pc.close();
+      //pc.close();
       cp.kill();
     }
   }, 60000);
@@ -272,7 +272,7 @@ export async function startRTCPeerConnection(sdk: ScryptedClientStatic, mediaObj
     await pc.setRemoteDescription(answer);
   }
   catch (e) {
-    pc.close();
+    //pc.close();
     throw e;
   }
 }

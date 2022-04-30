@@ -9,7 +9,7 @@ WORKDIR /web
 COPY . .
 
 # install node dependencies and build
-RUN npm i && npm run build
+RUN npm i --production && npm run build
 
 # run
 ENTRYPOINT npm start

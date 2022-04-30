@@ -99,6 +99,10 @@ export class Server {
 
     this.configureAPILogin(staticWeb);
     this.configureAPICameras();
+    this.app.get('/api/restart', auth, (_, res: Response) => {
+      res.redirect('/login');
+      setTimeout(process.exit, 1000);
+    });
 
     this.app.use(auth, express.static(staticWeb));
   }

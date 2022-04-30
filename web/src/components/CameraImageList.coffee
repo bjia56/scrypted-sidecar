@@ -184,7 +184,6 @@ export default CameraImageList = ->
 			</ImageListItem>
 			{itemData.map (item) ->
 				<ImageListItem key={item.name} onClick={
-					### eat event args ###
 					->
 						setSelectedCameraName item.name
 						openVideoModal item.name, hdVideo
