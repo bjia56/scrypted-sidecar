@@ -8,6 +8,12 @@ import * as path from "path";
 import crypto from "crypto";
 import sharp from "sharp";
 
+global.window = {
+  location: {
+    hostname: "localhost"
+  }
+} as Window & typeof globalThis;
+
 import { connectScryptedClient, ScryptedClientStatic } from '../scrypted/packages/client/src';
 import { ScryptedInterface, ScryptedDevice, VideoCamera, Camera } from "../scrypted/sdk/types/index";
 import { startBrowserRTCSignaling } from "./ffmpeg-to-wrtc";

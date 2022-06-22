@@ -13,6 +13,14 @@ configuration =
 		}
 	]
 
+class StreamRPCController
+	constructor: (@session, @peerconnection, @socket) ->
+
+	close: ->
+		@session.endSession()
+		@peerconnection.close()
+		@socket.close()
+
 export streamCamera = (cameraName, getVideo, getAudio, isHd) ->
 	socket = io()
 	console.log "isHd " + isHd
@@ -26,9 +34,8 @@ export streamCamera = (cameraName, getVideo, getAudio, isHd) ->
 	socket.on 'server-signaling', (data) ->
 		rpcPeer.handleMessage (JSON.parse data.toString())
 
-	pc = new RTCPeerConnection configuration
-
-	session = new BrowserSignalingSession pc, -> socket.close()
+	session = new BrowserSignalingSession -> socket.close()
+	pc = session.pc = new RTCPeerConnection configuration
 	session.options.cameraName = cameraName
 	session.options.maxWidth = if isHd then 1280 else 848
 	session.options.maxHeight = if isHd then 720 else 480
@@ -41,4 +48,5 @@ export streamCamera = (cameraName, getVideo, getAudio, isHd) ->
 		getAudio().srcObject = mediaStream
 		getAudio().play()
 		console.log 'received track', ev.track
-	pc
+
+	new StreamRPCController session, pc, socket
