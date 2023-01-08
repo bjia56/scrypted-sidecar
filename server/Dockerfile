@@ -2,8 +2,9 @@
 FROM node:16-bullseye
 
 # initial update and dependencies
-RUN apt update && apt -y upgrade && \
-    apt -y install --no-install-recommends ffmpeg
+RUN apt update && apt -y upgrade
+RUN wget -O /usr/bin/ffmpeg https://github.com/koush/scrypted-ffmpeg/releases/download/v1.0.6/ffmpeg-debian-x64 && \
+    chmod +x /usr/bin/ffmpeg
 
 # bring source into container
 WORKDIR /server

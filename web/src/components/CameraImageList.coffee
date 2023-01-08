@@ -28,6 +28,7 @@ defaultVideoModalStyle =
 
 defaultVideoDefinitionStyle =
 	position: 'absolute'
+	visibility: 'hidden'
 
 videoElementId = 'remote-video'
 audioElementId = 'remote-audio'
@@ -40,7 +41,7 @@ export default CameraImageList = ->
 	[rpc, setRpc] = React.useState null
 	[videoModalStyle, setVideoModalStyle] = React.useState defaultVideoModalStyle
 	[videoDefinitionStyle, setVideoDefinitionStyle] = React.useState defaultVideoDefinitionStyle
-	[hdVideo, setHdVideo] = React.useState false
+	[hdVideo, setHdVideo] = React.useState true
 	[selectedCameraName, setSelectedCameraName] = React.useState null
 
 	getVideoElement = -> document.getElementById videoElementId
@@ -128,7 +129,9 @@ export default CameraImageList = ->
 			console.log "Setting hdVideo " + isHd
 			setHdVideo isHd
 			closeVideoModal()
-			openVideoModal selectedCameraName, isHd
+			setTimeout ->
+				openVideoModal selectedCameraName, isHd
+			, 0
 
 	React.useEffect ->
 		axios.get '/api/cameras'
