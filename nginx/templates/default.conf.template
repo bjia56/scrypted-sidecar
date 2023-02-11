@@ -39,6 +39,7 @@ http {
   server {
     listen 443 ssl;
     server_name registry.${NGINX_SERVER_NAME};
+    client_max_body_size 0;
 
     ssl_certificate     /etc/letsencrypt/live/${NGINX_SERVER_NAME}/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/${NGINX_SERVER_NAME}/privkey.pem;

@@ -7,6 +7,7 @@ services:
     restart: unless-stopped
     volumes:
       - ~/.scrypted/volume:/server/volume
+      - ~/.nvr/media:/media/external
     ports:
       - "10443:10443"
     env_file: .env.scrypted
@@ -77,15 +78,18 @@ services:
       - ~/.sidecar/volume:/server/volume
 
   buildkit:
-    image: moby/buildkit
+    image: moby/buildkit:rootless
     container_name: buildkit
     restart: unless-stopped
-    privileged: true
+    security_opt:
+      - seccomp=unconfined
+      - apparmor=unconfined
+      - systempaths=unconfined
     ports:
       - "11531:11531"
     volumes:
       - ~/.buildkit/certs:/etc/buildkit/certs
-    command: --addr tcp://0.0.0.0:11531 --tlscacert /etc/buildkit/certs/ca.pem --tlscert /etc/buildkit/certs/cert.pem --tlskey /etc/buildkit/certs/key.pem
+    command: --addr tcp://0.0.0.0:11531 --tlscacert /etc/buildkit/certs/ca.pem --tlscert /etc/buildkit/certs/cert.pem --tlskey /etc/buildkit/certs/key.pem --oci-worker-no-process-sandbox
     logging:
       driver: "json-file"
       options:
