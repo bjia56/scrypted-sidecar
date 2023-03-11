@@ -4,15 +4,6 @@ import { BrowserSignalingSession } from "../scrypted/common/src/rtc-signaling";
 import { RpcPeer } from '../scrypted/server/src/rpc';
 import { io } from "socket.io-client";
 
-configuration =
-	iceServers: [
-		{
-			urls: ["turn:turn0.clockworkmod.com", "turn:n0.clockworkmod.com", "turn:n1.clockworkmod.com"],
-			username: "foo",
-			credential: "bar",
-		}
-	]
-
 class StreamRPCController
 	constructor: (@session, @peerconnection, @socket) ->
 
@@ -21,9 +12,10 @@ class StreamRPCController
 		@peerconnection.close()
 		@socket.close()
 
-export streamCamera = (cameraName, getVideo, getAudio, isHd) ->
+export streamCamera = (configuration, cameraName, getVideo, getAudio, isHd) ->
 	socket = io()
 	console.log "isHd " + isHd
+	console.log "using RTC config", JSON.stringify configuration
 
 	rpcPeer = new RpcPeer 'cast-receiver', 'scrypted-server', (message, reject) ->
 		try
