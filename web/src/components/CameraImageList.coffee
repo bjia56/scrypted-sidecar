@@ -43,6 +43,7 @@ export default CameraImageList = ->
 	[videoDefinitionStyle, setVideoDefinitionStyle] = React.useState defaultVideoDefinitionStyle
 	[hdVideo, setHdVideo] = React.useState true
 	[selectedCameraName, setSelectedCameraName] = React.useState null
+	[configuration, setConfiguration] = React.useState null
 
 	getVideoElement = -> document.getElementById videoElementId
 	getAudioElement = -> document.getElementById audioElementId
@@ -121,7 +122,7 @@ export default CameraImageList = ->
 		setShowLoading true
 		setTimeout ->
 			getVideoElement().addEventListener 'play', videoOnPlay
-			setRpc (streamCamera cameraName, getVideoElement, getAudioElement, isHdVideo)
+			setRpc (streamCamera configuration, cameraName, getVideoElement, getAudioElement, isHdVideo)
 		, 0
 
 	setHd = (isHd) -> ->
@@ -146,6 +147,11 @@ export default CameraImageList = ->
 					cameras[idx].img = img
 					setItemData (JSON.parse (JSON.stringify cameras))
 				.catch (e) -> console.log e
+		.catch (e) -> console.log e
+
+		axios.get '/api/rtc'
+		.then (res) ->
+			setConfiguration res.data
 		.catch (e) -> console.log e
 
 		# cleanup

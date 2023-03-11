@@ -9,7 +9,7 @@ services:
       - ~/.scrypted/volume:/server/volume
       - ~/.nvr/media:/media/external
     ports:
-      - "10443:10443"
+      - "11443:10443"
     env_file: .env.scrypted
     logging:
       driver: "json-file"
@@ -77,40 +77,40 @@ services:
     volumes:
       - ~/.sidecar/volume:/server/volume
 
-  buildkit:
-    image: moby/buildkit:rootless
-    container_name: buildkit
-    restart: unless-stopped
-    security_opt:
-      - seccomp=unconfined
-      - apparmor=unconfined
-      - systempaths=unconfined
-    ports:
-      - "11531:11531"
-    volumes:
-      - ~/.buildkit/certs:/etc/buildkit/certs
-    command: --addr tcp://0.0.0.0:11531 --tlscacert /etc/buildkit/certs/ca.pem --tlscert /etc/buildkit/certs/cert.pem --tlskey /etc/buildkit/certs/key.pem --oci-worker-no-process-sandbox
-    logging:
-      driver: "json-file"
-      options:
-         max-size: "10m"
-         max-file: "10"
-
-  registry:
-    image: registry:2
-    container_name: registry
-    restart: unless-stopped
-    volumes:
-      - ~/.registry/auth:/auth
-      - ~/.buildkit/certs:/certs
-    environment:
-      REGISTRY_AUTH: htpasswd
-      REGISTRY_AUTH_HTPASSWD_REALM: Registry Realm
-      REGISTRY_AUTH_HTPASSWD_PATH: /auth/htpasswd
-      REGISTRY_HTTP_TLS_CERTIFICATE: /certs/cert.pem
-      REGISTRY_HTTP_TLS_KEY: /certs/key.pem
-    logging:
-      driver: "json-file"
-      options:
-         max-size: "10m"
-         max-file: "10"
+#  buildkit:
+#    image: moby/buildkit:rootless
+#    container_name: buildkit
+#    restart: unless-stopped
+#    security_opt:
+#      - seccomp=unconfined
+#      - apparmor=unconfined
+#      - systempaths=unconfined
+#    ports:
+#      - "11531:11531"
+#    volumes:
+#      - ~/.buildkit/certs:/etc/buildkit/certs
+#    command: --addr tcp://0.0.0.0:11531 --tlscacert /etc/buildkit/certs/ca.pem --tlscert /etc/buildkit/certs/cert.pem --tlskey /etc/buildkit/certs/key.pem --oci-worker-no-process-sandbox
+#    logging:
+#      driver: "json-file"
+#      options:
+#         max-size: "10m"
+#         max-file: "10"
+#
+#  registry:
+#    image: registry:2
+#    container_name: registry
+#    restart: unless-stopped
+#    volumes:
+#      - ~/.registry/auth:/auth
+#      - ~/.buildkit/certs:/certs
+#    environment:
+#      REGISTRY_AUTH: htpasswd
+#      REGISTRY_AUTH_HTPASSWD_REALM: Registry Realm
+#      REGISTRY_AUTH_HTPASSWD_PATH: /auth/htpasswd
+#      REGISTRY_HTTP_TLS_CERTIFICATE: /certs/cert.pem
+#      REGISTRY_HTTP_TLS_KEY: /certs/key.pem
+#    logging:
+#      driver: "json-file"
+#      options:
+#         max-size: "10m"
+#         max-file: "10"

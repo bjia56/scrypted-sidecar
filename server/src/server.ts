@@ -16,7 +16,7 @@ global.window = {
 
 import { connectScryptedClient, ScryptedClientStatic } from '../scrypted/packages/client/src';
 import { ScryptedInterface, ScryptedDevice, VideoCamera, Camera } from "../scrypted/sdk/types/index";
-import { startBrowserRTCSignaling } from "./ffmpeg-to-wrtc";
+import { startBrowserRTCSignaling, configuration } from "./ffmpeg-to-wrtc";
 
 const FileStore = sessionFileStore(session);
 
@@ -79,7 +79,7 @@ export class Server {
       }),
       resave: false,
       saveUninitialized: false,
-      cookie: { maxAge: 1000 * 60 * 60 * 24 * 7 },
+      cookie: { maxAge: 1000 * 60 * 60 * 24 * 7 * 12 },
     }));
     this.httpServer = createServer(this.app);
     this.io = new SocketIOServer(this.httpServer);
@@ -108,6 +108,9 @@ export class Server {
     this.app.get('/api/restart', auth, (_, res: Response) => {
       res.redirect('/login');
       setTimeout(process.exit, 1000);
+    });
+    this.app.get('/api/rtc', auth, (_, res: Response) => {
+      res.send(JSON.stringify(configuration));
     });
 
     this.app.use(auth, express.static(staticWeb));

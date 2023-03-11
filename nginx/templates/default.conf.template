@@ -12,7 +12,7 @@ http {
 
   server {
     listen 80;
-    server_name registry.${NGINX_SERVER_NAME};
+    server_name nvr.${NGINX_SERVER_NAME};
 
     location /.well-known/acme-challenge/ {
       root /var/www/certbot;
@@ -22,6 +22,19 @@ http {
       return 301 https://$host$request_uri;
     }
   }
+
+#  server {
+#    listen 80;
+#    server_name registry.${NGINX_SERVER_NAME};
+#
+#    location /.well-known/acme-challenge/ {
+#      root /var/www/certbot;
+#    }
+#
+#    location / {
+#      return 301 https://$host$request_uri;
+#    }
+#  }
 
   server {
     listen 80;
@@ -38,8 +51,7 @@ http {
 
   server {
     listen 443 ssl;
-    server_name registry.${NGINX_SERVER_NAME};
-    client_max_body_size 0;
+    server_name nvr.${NGINX_SERVER_NAME};
 
     ssl_certificate     /etc/letsencrypt/live/${NGINX_SERVER_NAME}/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/${NGINX_SERVER_NAME}/privkey.pem;
@@ -48,10 +60,31 @@ http {
     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 
     location / {
-      proxy_pass https://registry:5000;
-      proxy_ssl_verify off;
+      access_log off;
+      proxy_pass http://${NGINX_NVR_HOST}:11080;
+    }
+
+    location = / {
+      return 301 https://$host/endpoint/@scrypted/nvr/public/;
     }
   }
+
+#  server {
+#    listen 443 ssl;
+#    server_name registry.${NGINX_SERVER_NAME};
+#    client_max_body_size 0;
+#
+#    ssl_certificate     /etc/letsencrypt/live/${NGINX_SERVER_NAME}/fullchain.pem;
+#    ssl_certificate_key /etc/letsencrypt/live/${NGINX_SERVER_NAME}/privkey.pem;
+#
+#    include /etc/letsencrypt/options-ssl-nginx.conf;
+#    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+#
+#    location / {
+#      proxy_pass https://registry:5000;
+#      proxy_ssl_verify off;
+#    }
+#  }
 
   server {
     listen 443 ssl;

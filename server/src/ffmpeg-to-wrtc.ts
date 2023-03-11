@@ -10,10 +10,13 @@ import * as wrtc from "@koush/wrtc";
 import { Socket as SocketIOSocket } from "socket.io";
 import { ScryptedClientStatic } from '../scrypted/packages/client/src/index';
 
-const configuration: RTCConfiguration = {
+export const configuration: RTCConfiguration = {
   iceServers: [
     {
-      urls: ["turn:turn0.clockworkmod.com", "turn:n0.clockworkmod.com", "turn:n1.clockworkmod.com"],
+      urls: `stun:${process.env.TURN_SERVER}:3478`
+    },
+    {
+      urls: `turn:${process.env.TURN_SERVER}:3478`,
       username: "foo",
       credential: "bar",
     },
