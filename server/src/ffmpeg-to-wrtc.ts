@@ -17,8 +17,8 @@ export const configuration: RTCConfiguration = {
     },
     {
       urls: `turn:${process.env.TURN_SERVER}:3478`,
-      username: "foo",
-      credential: "bar",
+      username: `${process.env.TURN_SERVER_USERNAME || ''}`,
+      credential: `${process.env.TURN_SERVER_PASSWORD || ''}`,
     },
   ],
 };
