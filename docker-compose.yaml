@@ -22,8 +22,8 @@ services:
     container_name: nginx
     restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
+      - "22080:80"
+      - "22443:443"
     env_file: .env.nginx
     volumes:
       - ./nginx:/etc/nginx
@@ -48,7 +48,7 @@ services:
     entrypoint: "/bin/sh -c 'trap exit TERM; apk update && apk add --no-cache docker-cli; while :; do certbot renew; docker exec nginx nginx -s reload; sleep 12h & wait $${!}; done;'"
 
   web:
-    image: scrypted-sidecar/web
+    image: ghcr.io/bjia56/scrypted-sidecar-web:master
     container_name: web
     restart: unless-stopped
     environment:
@@ -61,7 +61,7 @@ services:
          max-file: "10"
 
   server:
-    image: scrypted-sidecar/server
+    image: ghcr.io/bjia56/scrypted-sidecar-server:master
     container_name: server
     restart: unless-stopped
     env_file: .env.server
