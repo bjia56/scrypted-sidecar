@@ -121,7 +121,11 @@ export async function startRTCPeerConnectionFFmpegInput(ffInput: FFmpegInput, op
   for (let i = 0; i < ffInput.inputArguments.length; i++) {
     const arg = ffInput.inputArguments[i];
     if (arg.startsWith("rtsp")) {
-      ffInput.inputArguments[i] = arg.replace("localhost", scryptedHost).replace("127.0.0.1", scryptedHost)
+      if (ffInput.urls) {
+        ffInput.inputArguments[i] = ffInput.urls[0];
+      } else {
+        ffInput.inputArguments[i] = arg.replace("localhost", scryptedHost).replace("127.0.0.1", scryptedHost);
+      }
     }
   }
 
