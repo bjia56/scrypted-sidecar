@@ -120,7 +120,7 @@ export async function startRTCPeerConnectionFFmpegInput(ffInput: FFmpegInput, op
 
   for (let i = 0; i < ffInput.inputArguments.length; i++) {
     const arg = ffInput.inputArguments[i];
-    if (arg.startsWith("rtsp")) {
+    if (arg.startsWith("rtsp://")) {
       if ((ffInput as any).urls) {
         ffInput.inputArguments[i] = (ffInput as any).urls[0];
       } else {
