@@ -318,7 +318,7 @@ export async function startBrowserRTCSignaling(sio: SocketIOSocket, sdk: Scrypte
 
     const camera = sdk.systemManager.getDeviceByName<VideoCamera>(options.cameraName);
 
-    startRTCPeerConnectionForBrowser(sdk, await camera.getVideoStream({ route: 'direct' }), session, options as RTCSignalingOptions & Resolution);
+    startRTCPeerConnectionForBrowser(sdk, await camera.getVideoStream({ route: 'direct' } as any), session, options as RTCSignalingOptions & Resolution);
   }
   catch (e) {
     console.error("error negotiating browser RTC signaling", e);
